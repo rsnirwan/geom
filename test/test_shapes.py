@@ -1,17 +1,12 @@
-from math import isclose
 from functools import partial
+from math import isclose
+from unittest import mock
 
 import numpy as np
-import pytest
 
 from geom import shapes
 
 close_to = partial(isclose, abs_tol=1e-10)
-
-
-def test_BaseShape_init():
-    with pytest.raises(NotImplementedError):
-        shapes.BaseShape()
 
 
 def test_BaseShape_evaluate():
@@ -20,6 +15,22 @@ def test_BaseShape_evaluate():
     assert np.allclose(c.evaluate(t=0.0), [1.0, 0.0])
     assert np.allclose(c.evaluate(t=0.25), [0.0, 1.0])
     assert np.allclose(c.evaluate(t=0.5), [-1.0, 0.0])
+
+
+def test_BaseShape_rotate():
+    # test through Circle
+    phi = mock.Mock()
+    c = shapes.Circle([0.0, 0.0], 1.0)
+    c.rotate(phi)
+    assert len(c.trafos.trafos) == 1
+
+
+def test_BaseShape_translate():
+    # test through Circle
+    phi = mock.Mock()
+    c = shapes.Circle([0.0, 0.0], 1.0)
+    c.translate(phi)
+    assert len(c.trafos.trafos) == 1
 
 
 def test_BaseShape_to_array():

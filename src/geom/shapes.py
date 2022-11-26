@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import numpy as np
+
+from geom.transformations import Transformations, Rotation, Translation
 
 
 class BaseShape:
-    def __init__(self) -> None:
-        raise NotImplementedError
+    def __init__(self, **kwargs) -> None:
+        self.trafos = Transformations()
 
     def _f_x(self, t: float) -> float:
         raise NotImplementedError
@@ -14,17 +18,26 @@ class BaseShape:
     def evaluate(self, t: float) -> tuple[float, float]:
         return (self._f_x(t), self._f_y(t))
 
-    def to_array(self, n: int = 100, ts: np.ndarray = None) -> np.ndarray:
+    def to_array(self, n: int = 250, ts: np.ndarray = None) -> np.ndarray:
         if ts is None:
             ts = np.linspace(0, 1, n)
-        return np.array([self.evaluate(t) for t in ts])
+        return self.trafos(np.array([self.evaluate(t) for t in ts]))
+
+    def rotate(self, phi: float) -> BaseShape:
+        self.trafos.add(Rotation(phi))
+        return self
+
+    def translate(self, vec: np.ndarray) -> BaseShape:
+        self.trafos.add(Translation(np.array(vec)))
+        return self
 
 
 class Circle(BaseShape):
-    def __init__(self, loc: tuple[float, float], r: float) -> None:
+    def __init__(self, loc: tuple[float, float], r: float, **kwargs: dict) -> None:
         self.x = loc[0]
         self.y = loc[1]
         self.r = r
+        super().__init__(**kwargs)
 
     def _f_x(self, t: float) -> float:
         return self.x + self.r * np.cos(2 * np.pi * t)
@@ -38,9 +51,12 @@ class Rectangle(BaseShape):
     Axis aligned Rectangle defined by its diagonal from `x0` to `x1`.
     """
 
-    def __init__(self, x0: tuple[float, float], x1: tuple[float, float]) -> None:
+    def __init__(
+        self, x0: tuple[float, float], x1: tuple[float, float], **kwargs: dict
+    ) -> None:
         self.x0 = np.array(x0)
         self.x1 = np.array(x1)
+        super().__init__(**kwargs)
 
     def _f_x(self, t: float) -> float:
         start, end = self.x0[0], self.x1[0]

@@ -32,18 +32,59 @@ class BaseShape:
         return self
 
 
-class Circle(BaseShape):
-    def __init__(self, loc: tuple[float, float], r: float, **kwargs: dict) -> None:
+class ArcEllipse(BaseShape):
+    def __init__(
+        self,
+        loc: tuple[float, float],
+        width: float,
+        hight: float,
+        phi0: float,
+        phi1: float,
+        **kwargs: dict,
+    ) -> None:
         self.x = loc[0]
         self.y = loc[1]
-        self.r = r
+        self.width = width
+        self.hight = hight
+        self.phi0 = phi0
+        self.phi1 = phi1
         super().__init__(**kwargs)
 
     def _f_x(self, t: float) -> float:
-        return self.x + self.r * np.cos(2 * np.pi * t)
+        phi = self.phi0 + t * (self.phi1 - self.phi0)
+        return self.x + self.width * np.cos(phi)
 
     def _f_y(self, t: float) -> float:
-        return self.y + self.r * np.sin(2 * np.pi * t)
+        phi = self.phi0 + t * (self.phi1 - self.phi0)
+        return self.y + self.hight * np.sin(phi)
+
+
+class Ellipse(ArcEllipse):
+    def __init__(
+        self, loc: tuple[float, float], width: float, hight: float, **kwargs: dict
+    ) -> None:
+        super().__init__(
+            loc=loc, width=width, hight=hight, phi0=0.0, phi1=2 * np.pi, **kwargs
+        )
+
+
+class ArcCircle(ArcEllipse):
+    def __init__(
+        self,
+        loc: tuple[float, float],
+        radius: float,
+        phi0: float,
+        phi1: float,
+        **kwargs: dict,
+    ) -> None:
+        super().__init__(
+            loc=loc, width=radius, hight=radius, phi0=phi0, phi1=phi1, **kwargs
+        )
+
+
+class Circle(ArcCircle):
+    def __init__(self, loc: tuple[float, float], radius: float, **kwargs: dict) -> None:
+        super().__init__(loc=loc, radius=radius, phi0=0.0, phi1=2 * np.pi, **kwargs)
 
 
 class Rectangle(BaseShape):

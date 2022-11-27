@@ -4,11 +4,13 @@ from itertools import zip_longest
 import numpy as np
 
 from geom.transformations import Transformations, Rotation, Translation
+from geom.draw_pyplot import Axes, draw as draw_pyplot
 
 
 class BaseShape:
     def __init__(self, **kwargs) -> None:
         self.trafos = Transformations()
+        self.kwargs = kwargs
 
     def _f_x(self, t: float) -> float:
         raise NotImplementedError
@@ -31,6 +33,9 @@ class BaseShape:
     def translate(self, vec: np.ndarray) -> BaseShape:
         self.trafos.add(Translation(np.array(vec)))
         return self
+
+    def draw(self, ax: Axes = None, **kwargs) -> None:
+        draw_pyplot(self.to_array(), ax=ax, **{**kwargs, **self.kwargs})
 
 
 class ArcEllipse(BaseShape):

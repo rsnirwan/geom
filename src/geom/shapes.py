@@ -1,4 +1,5 @@
 from __future__ import annotations
+from itertools import zip_longest
 
 import numpy as np
 
@@ -87,7 +88,33 @@ class Circle(ArcCircle):
         super().__init__(loc=loc, radius=radius, phi0=0.0, phi1=2 * np.pi, **kwargs)
 
 
-class Rectangle(BaseShape):
+class Polygon(BaseShape):
+    def __init__(self, locs: list[tuple[float, float]], **kwargs: dict) -> None:
+        self.locs = np.array(locs)
+
+        pairs = zip_longest(self.locs, self.locs[1:], fillvalue=self.locs[0])
+        self.segment_ends_in_t = np.cumsum([np.linalg.norm(s - e) for s, e in pairs])
+        self.segment_ends_in_t /= self.segment_ends_in_t.max()
+        super().__init__(**kwargs)
+
+    def _interpolate(self, t: float, dim: int) -> float:
+        ind = np.where(self.segment_ends_in_t >= t)[0][0]
+        start_t = 0 if ind == 0 else self.segment_ends_in_t[ind - 1]
+        end_t = self.segment_ends_in_t[ind]
+        if ind < len(self.segment_ends_in_t) - 1:
+            start_loc, end_loc = self.locs[ind : ind + 2, dim]  # +2 excusive
+        else:  # last segment combines end point to the first point
+            start_loc, end_loc = self.locs[-1, dim], self.locs[0, dim]
+        return start_loc + (t - start_t) / (end_t - start_t) * (end_loc - start_loc)
+
+    def _f_x(self, t: float) -> float:
+        return self._interpolate(t, dim=0)
+
+    def _f_y(self, t: float) -> float:
+        return self._interpolate(t, dim=1)
+
+
+class Rectangle(Polygon):
     """
     Axis aligned Rectangle defined by its diagonal from `x0` to `x1`.
     """
@@ -95,28 +122,5 @@ class Rectangle(BaseShape):
     def __init__(
         self, x0: tuple[float, float], x1: tuple[float, float], **kwargs: dict
     ) -> None:
-        self.x0 = np.array(x0)
-        self.x1 = np.array(x1)
-        super().__init__(**kwargs)
-
-    def _f_x(self, t: float) -> float:
-        start, end = self.x0[0], self.x1[0]
-        if t < 0.25:
-            return start + 4 * t * (end - start)
-        elif t < 0.5:
-            return end
-        elif t < 0.75:
-            return end - 4 * (t - 0.5) * (end - start)
-        else:
-            return start
-
-    def _f_y(self, t: float) -> float:
-        start, end = self.x0[1], self.x1[1]
-        if t < 0.25:
-            return start
-        elif t < 0.5:
-            return start + 4 * (t - 0.25) * (end - start)
-        elif t < 0.75:
-            return end
-        else:
-            return end - 4 * (t - 0.75) * (end - start)
+        locs = [x0, [x1[0], x0[1]], x1, [x0[0], x1[1]]]
+        super().__init__(locs=locs, **kwargs)

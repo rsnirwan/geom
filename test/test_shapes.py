@@ -91,23 +91,22 @@ def test_ArcCircle_init():
 
 def test_Rectangle_init():
     r = shapes.Rectangle([1.0, 1.0], [2.0, 2.0])
-    assert np.allclose(r.x0, [1.0, 1.0])
-    assert np.allclose(r.x1, [2.0, 2.0])
+    assert len(r.locs) == 4
 
 
-def test_Rectangle_f_x():
-    c = shapes.Rectangle([1.0, 1.0], [2.0, 2.0])
-    assert close_to(c._f_x(t=0.0), 1.0)
-    assert close_to(c._f_x(t=0.25), 2.0)
-    assert close_to(c._f_x(t=0.50), 2.0)
-    assert close_to(c._f_x(t=0.75), 1.0)
-    assert close_to(c._f_x(t=1.0), 1.0)
+def test_Polygon_f_x():
+    p = shapes.Polygon(locs=[[1.0, 1.0], [2.0, 1.0], [2.0, 2.0], [1.0, 2.0]])
+    assert close_to(p._f_x(t=0.0), 1.0)
+    assert close_to(p._f_x(t=0.25), 2.0)
+    assert close_to(p._f_x(t=0.50), 2.0)
+    assert close_to(p._f_x(t=0.75), 1.0)
+    assert close_to(p._f_x(t=1.0), 1.0)
 
 
 def test_Rectangle_f_y():
-    c = shapes.Rectangle([1.0, 1.0], [2.0, 2.0])
-    assert close_to(c._f_y(t=0.0), 1.0)
-    assert close_to(c._f_y(t=0.25), 1.0)
-    assert close_to(c._f_y(t=0.50), 2.0)
-    assert close_to(c._f_y(t=0.75), 2.0)
-    assert close_to(c._f_y(t=1.0), 1.0)
+    p = shapes.Polygon(locs=[[1.0, 1.0], [2.0, 1.0], [2.0, 2.0], [1.0, 2.0]])
+    assert close_to(p._f_y(t=0.0), 1.0)
+    assert close_to(p._f_y(t=0.25), 1.0)
+    assert close_to(p._f_y(t=0.50), 2.0)
+    assert close_to(p._f_y(t=0.75), 2.0)
+    assert close_to(p._f_y(t=1.0), 1.0)
